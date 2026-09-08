@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/*
+ * ReLoop design tokens — see .kiro/specs/reloop/design.md §6.1.
+ *
+ * Palette discipline: one clay accent plus an urgency scale. No greens-as-brand, no leaf
+ * motifs. Circularity is expressed structurally (the activity feed connector line).
+ *
+ * Every colour used for TEXT has a `-ink` variant that clears WCAG AA (>= 4.5:1) on
+ * `--color-paper`. The plain variants are for fills, borders and large display type only.
+ * Contrast ratios on paper are noted per token so they cannot silently regress.
+ */
+@theme {
+  /* surfaces */
+  --color-paper: #f7f4ef;
+  --color-paper-raised: #fffdfa;
+  --color-paper-sunken: #efeae2;
+  --color-line: #ddd6ca;
+
+  /* text */
+  --color-ink: #12100e; /* 17.4:1 */
+  --color-slate: #5b5f58; /* 5.9:1  secondary text */
+
+  /* accent */
+  --color-clay: #c9502f; /* 4.1:1  fills, borders, large type only */
+  --color-clay-ink: #9e3b1e; /* 6.2:1  accent text at body size */
+  --color-clay-soft: #f6e3dc;
+
+  /* urgency scale: calm -> act now. fill + ink pairs. */
+  --color-urgency-calm: #7a9e7e;
+  --color-urgency-calm-ink: #45604a; /* 6.3:1 */
+  --color-urgency-soon: #e8a33d;
+  --color-urgency-soon-ink: #8a5b10; /* 7.3:1 */
+  --color-urgency-now: #c9502f;
+  --color-urgency-now-ink: #9e3b1e; /* 6.2:1 */
+  --color-urgency-critical: #8c2b18;
+  --color-urgency-critical-ink: #7a2413; /* 9.1:1 */
+
+  /* agent identities — used for feed attribution, never as the only signal */
+  --color-agent-perception: #3f6b7d;
+  --color-agent-prediction: #6b5b8a;
+  --color-agent-negotiation: #9e3b1e;
+  --color-agent-logistics: #4a6b52;
+  --color-agent-impact: #7a5c2e;
+  --color-agent-partner: #5b5f58;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+
+  /* 4px spacing grid is Tailwind's default; borders over shadows */
+  --radius-card: 0.5rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Mobile-first: primary users are on phones. */
+    text-wrap: pretty;
+  }
+
+  /* Never remove focus affordance — see .kiro/steering/conventions.md */
+  :focus-visible {
+    outline: 2px solid var(--color-clay-ink);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

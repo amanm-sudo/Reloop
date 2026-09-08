@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# secrets — see .kiro/steering/secrets.md
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+*.pem
+service-account*.json
+
+# testing
+coverage/
+test-results/
+playwright-report/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vercel
+
+# local scratch
+NOTES.local.md
+tmp/

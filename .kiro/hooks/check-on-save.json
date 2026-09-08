@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Typecheck, lint and test on save",
+      "trigger": "PostFileSave",
+      "description": "Runs npm run check (tsc --noEmit, eslint, vitest, verify-sources) whenever a TypeScript file is saved. Skips cleanly before the project is scaffolded.",
+      "matcher": "\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "if (Test-Path package.json) { npm run check } else { Write-Output \"skipped: package.json not present yet\" }",
+        "timeout": 180
+      }
+    }
+  ]
+}

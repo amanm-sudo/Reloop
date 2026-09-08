@@ -1,0 +1,301 @@
+{
+  "dataset": {
+    "name": "USDA FoodKeeper (FSIS) storage guidance, reconciled against the FDA/FoodSafety.gov Cold Food Storage Chart",
+    "primaryUrl": "https://www.foodsafety.gov/keep-food-safe/foodkeeper-app",
+    "coldChartUrl": "https://www.fda.gov/downloads/Food/ResourcesForYou/HealthEducators/ucm109315.pdf",
+    "dataDocumentationUrl": "https://www.fsis.usda.gov/sites/default/files/media_file/2020-06/Data-Documentation-FoodKeeper-Application.pdf",
+    "retrievedAt": "2026-08-31",
+    "extractionNote": "The FSIS FoodKeeper data feed refuses automated download (HTTP 403 on every published endpoint as of the retrieval date), so this table was authored by hand rather than generated from the feed. Rows marked verified:true carry values that appear on the FDA/FoodSafety.gov Cold Food Storage Chart, which is the same federal guidance family. Rows marked verified:false are category-level generalisations that still need a manual pass against a hand-downloaded FoodKeeper_Data.xlsx - see data/README.md. Nothing here is invented, but the unverified rows are not yet traceable to a specific published row and the UI marks items in those categories as lower confidence.",
+    "unitNote": "baselineHours is the storage life from the point the item enters ReLoop, per storage state. actionWindowHours is how much lead time a recovery partner realistically needs for that category - it is a ReLoop operational parameter, not a food-safety figure, and is documented as such."
+  },
+  "entries": [
+    {
+      "category": "produce_leafy_greens",
+      "label": "Leafy greens (palak, methi, coriander, lettuce)",
+      "baselineHours": { "PANTRY": 12, "FRIDGE": 120, "FREEZER": 1440 },
+      "cookedFactor": 0.8,
+      "actionWindowHours": 24,
+      "verified": false,
+      "sourceNote": "Refrigerated leafy greens are commonly given 3-7 days; 5 days used as the midpoint. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_root_vegetables",
+      "label": "Root vegetables (carrot, beetroot, radish, turnip)",
+      "baselineHours": { "PANTRY": 336, "FRIDGE": 720, "FREEZER": 2880 },
+      "cookedFactor": 0.15,
+      "actionWindowHours": 72,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_other_vegetables",
+      "label": "Other vegetables (gourds, brinjal, capsicum, beans)",
+      "baselineHours": { "PANTRY": 72, "FRIDGE": 168, "FREEZER": 2160 },
+      "cookedFactor": 0.55,
+      "actionWindowHours": 48,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_tomatoes",
+      "label": "Tomatoes",
+      "baselineHours": { "PANTRY": 72, "FRIDGE": 168, "FREEZER": 1440 },
+      "cookedFactor": 0.55,
+      "actionWindowHours": 48,
+      "verified": false,
+      "sourceNote": "FoodKeeper advises ripening at room temperature before refrigerating. Needs a row check."
+    },
+    {
+      "category": "produce_onions",
+      "label": "Onions",
+      "baselineHours": { "PANTRY": 720, "FRIDGE": 1440, "FREEZER": 2160 },
+      "cookedFactor": 0.07,
+      "actionWindowHours": 120,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_potatoes",
+      "label": "Potatoes",
+      "baselineHours": { "PANTRY": 720, "FRIDGE": 720, "FREEZER": 2160 },
+      "cookedFactor": 0.14,
+      "actionWindowHours": 120,
+      "verified": false,
+      "sourceNote": "Refrigeration is not recommended for raw potatoes; the fridge figure deliberately does not exceed pantry. Needs a row check."
+    },
+    {
+      "category": "produce_bananas",
+      "label": "Bananas",
+      "baselineHours": { "PANTRY": 96, "FRIDGE": 168, "FREEZER": 1440 },
+      "cookedFactor": 0.5,
+      "actionWindowHours": 24,
+      "verified": false,
+      "sourceNote": "FoodKeeper uses a when-ripe metric for bananas rather than fixed days. Needs a row check."
+    },
+    {
+      "category": "produce_citrus",
+      "label": "Citrus (orange, mosambi, lemon)",
+      "baselineHours": { "PANTRY": 240, "FRIDGE": 504, "FREEZER": 1440 },
+      "cookedFactor": 0.2,
+      "actionWindowHours": 96,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_apples",
+      "label": "Apples",
+      "baselineHours": { "PANTRY": 168, "FRIDGE": 720, "FREEZER": 1440 },
+      "cookedFactor": 0.15,
+      "actionWindowHours": 96,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_other_fruit",
+      "label": "Other fruit (mango, papaya, guava, grapes)",
+      "baselineHours": { "PANTRY": 72, "FRIDGE": 168, "FREEZER": 1440 },
+      "cookedFactor": 0.5,
+      "actionWindowHours": 36,
+      "verified": false,
+      "sourceNote": "Category generalisation across a wide group. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "produce_herbs",
+      "label": "Fresh herbs (curry leaves, mint, coriander)",
+      "baselineHours": { "PANTRY": 24, "FRIDGE": 168, "FREEZER": 1440 },
+      "cookedFactor": 0.6,
+      "actionWindowHours": 24,
+      "verified": false,
+      "sourceNote": "Category generalisation. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "dairy_milk",
+      "label": "Milk",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 168, "FREEZER": 2160 },
+      "cookedFactor": 1,
+      "actionWindowHours": 12,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: milk keeps about one week refrigerated. The pantry figure reflects that unrefrigerated milk is unsafe within hours and is a ReLoop safety floor, not a published value."
+    },
+    {
+      "category": "dairy_curd",
+      "label": "Curd / dahi / yoghurt",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 336, "FREEZER": 1440 },
+      "cookedFactor": 1,
+      "actionWindowHours": 24,
+      "verified": false,
+      "sourceNote": "Yoghurt is commonly given one to two weeks refrigerated. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "dairy_paneer",
+      "label": "Paneer / fresh cheese",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 168, "FREEZER": 1440 },
+      "cookedFactor": 0.6,
+      "actionWindowHours": 12,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: soft and fresh cheeses keep about one week refrigerated once opened."
+    },
+    {
+      "category": "dairy_butter_ghee",
+      "label": "Butter and ghee",
+      "baselineHours": { "PANTRY": 720, "FRIDGE": 2160, "FREEZER": 6480 },
+      "cookedFactor": 1,
+      "actionWindowHours": 168,
+      "verified": false,
+      "sourceNote": "Ghee is shelf-stable well beyond butter. Category generalisation; needs a FoodKeeper row check."
+    },
+    {
+      "category": "grains_rice_raw",
+      "label": "Raw rice",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 17520 },
+      "cookedFactor": 0.011,
+      "actionWindowHours": 168,
+      "verified": false,
+      "sourceNote": "Dry staple, effectively pantry-stable for a year or more. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "grains_wheat_flour",
+      "label": "Atta / wheat flour",
+      "baselineHours": { "PANTRY": 2880, "FRIDGE": 5760, "FREEZER": 8760 },
+      "cookedFactor": 0.02,
+      "actionWindowHours": 168,
+      "verified": false,
+      "sourceNote": "Whole wheat flour is usually given three to six months at room temperature. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "grains_bread",
+      "label": "Bread and buns",
+      "baselineHours": { "PANTRY": 120, "FRIDGE": 336, "FREEZER": 2160 },
+      "cookedFactor": 1,
+      "actionWindowHours": 24,
+      "verified": false,
+      "sourceNote": "Commercial bread is commonly given five to seven days at room temperature in a humid climate. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "grains_roti",
+      "label": "Roti / chapati / paratha",
+      "baselineHours": { "PANTRY": 24, "FRIDGE": 72, "FREEZER": 720 },
+      "cookedFactor": 1,
+      "actionWindowHours": 8,
+      "verified": false,
+      "sourceNote": "Freshly cooked flatbread is not covered by FoodKeeper. Treated as a cooked leftover with a shorter room-temperature life. ReLoop operational estimate, explicitly not a published figure."
+    },
+    {
+      "category": "pulses_dry",
+      "label": "Dry pulses (dal, chana, rajma)",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 17520 },
+      "cookedFactor": 0.011,
+      "actionWindowHours": 168,
+      "verified": false,
+      "sourceNote": "Dry staple, effectively pantry-stable for a year or more. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "protein_eggs",
+      "label": "Eggs in shell",
+      "baselineHours": { "PANTRY": 24, "FRIDGE": 840, "FREEZER": 0 },
+      "cookedFactor": 0.11,
+      "actionWindowHours": 72,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: raw eggs in shell keep three to five weeks refrigerated; 35 days used. Freezing in shell is not recommended, hence zero."
+    },
+    {
+      "category": "protein_poultry_raw",
+      "label": "Raw chicken and poultry",
+      "baselineHours": { "PANTRY": 2, "FRIDGE": 48, "FREEZER": 6480 },
+      "cookedFactor": 2,
+      "actionWindowHours": 6,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: raw poultry keeps one to two days refrigerated and about nine months frozen. Cooked poultry keeps three to four days, hence a cookedFactor above one."
+    },
+    {
+      "category": "protein_fish_raw",
+      "label": "Raw fish",
+      "baselineHours": { "PANTRY": 2, "FRIDGE": 48, "FREEZER": 4320 },
+      "cookedFactor": 2,
+      "actionWindowHours": 6,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: raw fish keeps one to two days refrigerated and about six months frozen."
+    },
+    {
+      "category": "cooked_rice_dish",
+      "label": "Cooked rice dishes (pulao, biryani, plain rice)",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 96, "FREEZER": 1440 },
+      "cookedFactor": 1,
+      "actionWindowHours": 6,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: cooked leftovers keep three to four days refrigerated. The pantry figure reflects the two-hour rule for food left at room temperature plus a small margin, and is a ReLoop safety floor."
+    },
+    {
+      "category": "cooked_dal",
+      "label": "Cooked dal and gravies",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 96, "FREEZER": 1440 },
+      "cookedFactor": 1,
+      "actionWindowHours": 6,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: cooked soups and stews keep three to four days refrigerated."
+    },
+    {
+      "category": "cooked_curry_veg",
+      "label": "Cooked vegetable sabzi",
+      "baselineHours": { "PANTRY": 4, "FRIDGE": 96, "FREEZER": 1440 },
+      "cookedFactor": 1,
+      "actionWindowHours": 6,
+      "verified": true,
+      "sourceNote": "FDA Cold Food Storage Chart: cooked leftovers keep three to four days refrigerated."
+    },
+    {
+      "category": "cooked_sweets",
+      "label": "Indian sweets (barfi, laddoo, milk sweets)",
+      "baselineHours": { "PANTRY": 48, "FRIDGE": 168, "FREEZER": 720 },
+      "cookedFactor": 1,
+      "actionWindowHours": 12,
+      "verified": false,
+      "sourceNote": "Not covered by FoodKeeper. Milk-based sweets are treated conservatively. ReLoop operational estimate, explicitly not a published figure."
+    },
+    {
+      "category": "oils_fats",
+      "label": "Cooking oil",
+      "baselineHours": { "PANTRY": 4320, "FRIDGE": 8760, "FREEZER": 8760 },
+      "cookedFactor": 1,
+      "actionWindowHours": 336,
+      "verified": false,
+      "sourceNote": "Opened cooking oil is commonly given six months in a cool dark place. Needs a FoodKeeper row check."
+    },
+    {
+      "category": "packaged_dry_goods",
+      "label": "Packaged dry goods (biscuits, namkeen, cereal)",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 8760 },
+      "cookedFactor": 1,
+      "actionWindowHours": 336,
+      "verified": false,
+      "sourceNote": "Heterogeneous category governed by the printed best-before date, which ReLoop prefers when the user supplies it. Fallback generalisation only."
+    },
+    {
+      "category": "material_textiles",
+      "label": "Clothing and textiles",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 8760 },
+      "cookedFactor": 1,
+      "actionWindowHours": 336,
+      "verified": true,
+      "sourceNote": "Materials do not spoil. Urgency for MATERIAL items comes from a user-set deadline, not from shelf life; this row exists so the lookup is total and never falls through to a guess."
+    },
+    {
+      "category": "material_paper_card",
+      "label": "Paper, books and cardboard",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 8760 },
+      "cookedFactor": 1,
+      "actionWindowHours": 336,
+      "verified": true,
+      "sourceNote": "Materials do not spoil. Urgency comes from a user-set deadline."
+    },
+    {
+      "category": "material_household_goods",
+      "label": "Reusable household goods",
+      "baselineHours": { "PANTRY": 8760, "FRIDGE": 8760, "FREEZER": 8760 },
+      "cookedFactor": 1,
+      "actionWindowHours": 336,
+      "verified": true,
+      "sourceNote": "Materials do not spoil. Urgency comes from a user-set deadline."
+    }
+  ]
+}

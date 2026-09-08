@@ -1,0 +1,332 @@
+
+{
+  "dataset": {
+    "name": "Poore & Nemecek (2018), Reducing food's environmental impacts through producers and consumers, Science 360(6392)",
+    "year": 2018,
+    "referenceYear": 2010,
+    "distributedVia": "Our World in Data - Environmental Impacts of Food Production",
+    "url": "https://ourworldindata.org/environmental-impacts-of-food",
+    "seriesUrls": {
+      "co2eKgPerKg": "https://ourworldindata.org/grapher/ghg-per-kg-poore",
+      "landM2PerKg": "https://ourworldindata.org/grapher/land-use-per-kg-poore",
+      "waterLPerKg": "https://ourworldindata.org/grapher/water-withdrawals-per-kg-poore"
+    },
+    "retrievedAt": "2026-08-31",
+    "notes": "Global averages across the full supply chain, per kilogram of product as sold. CO2e includes land-use change; water is freshwater withdrawals; land is total land use. Cross-checked for order of magnitude against WRAP UK household food waste carbon figures (https://www.wrap.ngo/resources/report/household-food-and-drink-waste-united-kingdom-2021-22). WRAP is not used as the factor source because it does not publish per-kg water and land alongside carbon."
+  },
+  "compostFallback": {
+    "note": "Composting avoids landfill methane but does not avoid the emissions already embodied in producing the food. Composted outcomes therefore receive only the diversion credit below, never the per-kg production factors. Reporting the two as equivalent is the integrity failure this field exists to prevent.",
+    "co2eKgPerKgDiverted": 0.5,
+    "waterLPerKgDiverted": 0,
+    "landM2PerKgDiverted": 0,
+    "source": "WRAP food waste collections guidance: recycling food waste rather than landfilling it saves in the order of 0.5 tonnes CO2e per tonne",
+    "sourceUrl": "https://wrap.org.uk/system/files/2021-05/WRAP-food-collections-webinar-Q&A.pdf",
+    "verified": true
+  },
+  "factors": [
+    {
+      "category": "produce_leafy_greens",
+      "commodityGroup": "Brassicas",
+      "co2eKgPerKg": 0.51,
+      "landM2PerKg": 0.55,
+      "waterLPerKg": 119.4,
+      "isProxy": true,
+      "proxyNote": "Poore & Nemecek publishes no leafy-greens group. Brassicas is the closest published vegetable group by field water use.",
+      "verified": true
+    },
+    {
+      "category": "produce_root_vegetables",
+      "commodityGroup": "Root Vegetables",
+      "co2eKgPerKg": 0.43,
+      "landM2PerKg": 0.33,
+      "waterLPerKg": 28.4,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_other_vegetables",
+      "commodityGroup": "Other Vegetables",
+      "co2eKgPerKg": 0.53,
+      "landM2PerKg": 0.38,
+      "waterLPerKg": 102.5,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_tomatoes",
+      "commodityGroup": "Tomatoes",
+      "co2eKgPerKg": 2.09,
+      "landM2PerKg": 0.8,
+      "waterLPerKg": 369.8,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_onions",
+      "commodityGroup": "Onions & Leeks",
+      "co2eKgPerKg": 0.5,
+      "landM2PerKg": 0.39,
+      "waterLPerKg": 14.3,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_potatoes",
+      "commodityGroup": "Potatoes",
+      "co2eKgPerKg": 0.46,
+      "landM2PerKg": 0.88,
+      "waterLPerKg": 59.1,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_bananas",
+      "commodityGroup": "Bananas",
+      "co2eKgPerKg": 0.86,
+      "landM2PerKg": 1.93,
+      "waterLPerKg": 114.5,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_citrus",
+      "commodityGroup": "Citrus Fruit",
+      "co2eKgPerKg": 0.39,
+      "landM2PerKg": 0.86,
+      "waterLPerKg": 82.7,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_apples",
+      "commodityGroup": "Apples",
+      "co2eKgPerKg": 0.43,
+      "landM2PerKg": 0.63,
+      "waterLPerKg": 180.1,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_other_fruit",
+      "commodityGroup": "Other Fruit",
+      "co2eKgPerKg": 1.05,
+      "landM2PerKg": 0.89,
+      "waterLPerKg": 153.5,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "produce_herbs",
+      "commodityGroup": "Other Vegetables",
+      "co2eKgPerKg": 0.53,
+      "landM2PerKg": 0.38,
+      "waterLPerKg": 102.5,
+      "isProxy": true,
+      "proxyNote": "No published herbs group. Uses Other Vegetables; herb masses are small enough that the absolute error is negligible.",
+      "verified": true
+    },
+    {
+      "category": "dairy_milk",
+      "commodityGroup": "Milk",
+      "co2eKgPerKg": 3.15,
+      "landM2PerKg": 8.95,
+      "waterLPerKg": 628.2,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "dairy_curd",
+      "commodityGroup": "Milk",
+      "co2eKgPerKg": 3.15,
+      "landM2PerKg": 8.95,
+      "waterLPerKg": 628.2,
+      "isProxy": true,
+      "proxyNote": "Curd is cultured milk at roughly 1:1 by mass, so Milk factors apply almost directly. Excludes the small energy cost of culturing.",
+      "verified": true
+    },
+    {
+      "category": "dairy_paneer",
+      "commodityGroup": "Milk",
+      "co2eKgPerKg": 3.15,
+      "landM2PerKg": 8.95,
+      "waterLPerKg": 628.2,
+      "isProxy": true,
+      "proxyNote": "Deliberately conservative floor. Paneer takes several kilograms of milk per kilogram of product, so its true footprint is materially higher; the published Cheese group is 23.88 kg CO2e/kg. Milk factors are used because ReLoop will not overstate a saving it cannot source, so this understates rather than inflates.",
+      "verified": true
+    },
+    {
+      "category": "dairy_butter_ghee",
+      "commodityGroup": "Milk",
+      "co2eKgPerKg": 3.15,
+      "landM2PerKg": 8.95,
+      "waterLPerKg": 628.2,
+      "isProxy": true,
+      "proxyNote": "Conservative floor for the same reason as paneer. Ghee concentrates roughly twenty kilograms of milk into one kilogram of product; no per-kg ghee factor is published in this dataset.",
+      "verified": true
+    },
+    {
+      "category": "grains_rice_raw",
+      "commodityGroup": "Rice",
+      "co2eKgPerKg": 4.45,
+      "landM2PerKg": 2.8,
+      "waterLPerKg": 2248.4,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "grains_wheat_flour",
+      "commodityGroup": "Wheat & Rye",
+      "co2eKgPerKg": 1.57,
+      "landM2PerKg": 3.85,
+      "waterLPerKg": 647.5,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "grains_bread",
+      "commodityGroup": "Wheat & Rye",
+      "co2eKgPerKg": 1.57,
+      "landM2PerKg": 3.85,
+      "waterLPerKg": 647.5,
+      "isProxy": true,
+      "proxyNote": "Uses the flour-stage group; excludes baking energy and packaging.",
+      "verified": true
+    },
+    {
+      "category": "grains_roti",
+      "commodityGroup": "Wheat & Rye",
+      "co2eKgPerKg": 1.57,
+      "landM2PerKg": 3.85,
+      "waterLPerKg": 647.5,
+      "isProxy": true,
+      "proxyNote": "Uses the flour-stage group; excludes cooking energy.",
+      "verified": true
+    },
+    {
+      "category": "pulses_dry",
+      "commodityGroup": "Other Pulses",
+      "co2eKgPerKg": 1.79,
+      "landM2PerKg": 15.57,
+      "waterLPerKg": 435.7,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "protein_eggs",
+      "commodityGroup": "Eggs",
+      "co2eKgPerKg": 4.67,
+      "landM2PerKg": 6.27,
+      "waterLPerKg": 577.7,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "protein_poultry_raw",
+      "commodityGroup": "Poultry Meat",
+      "co2eKgPerKg": 9.87,
+      "landM2PerKg": 12.22,
+      "waterLPerKg": 660,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "protein_fish_raw",
+      "commodityGroup": "Fish (farmed)",
+      "co2eKgPerKg": 13.63,
+      "landM2PerKg": 8.41,
+      "waterLPerKg": 3691.3,
+      "isProxy": false,
+      "verified": true
+    },
+    {
+      "category": "cooked_rice_dish",
+      "commodityGroup": "Rice",
+      "co2eKgPerKg": 4.45,
+      "landM2PerKg": 2.8,
+      "waterLPerKg": 2248.4,
+      "isProxy": true,
+      "proxyNote": "Attributed to the dominant ingredient. Cooked rice absorbs water, so per kilogram as served this overstates somewhat; flagged rather than silently adjusted.",
+      "verified": true
+    },
+    {
+      "category": "cooked_dal",
+      "commodityGroup": "Other Pulses",
+      "co2eKgPerKg": 1.79,
+      "landM2PerKg": 15.57,
+      "waterLPerKg": 435.7,
+      "isProxy": true,
+      "proxyNote": "Attributed to the dominant ingredient, measured as dry pulses before cooking water is added.",
+      "verified": true
+    },
+    {
+      "category": "cooked_curry_veg",
+      "commodityGroup": "Other Vegetables",
+      "co2eKgPerKg": 0.53,
+      "landM2PerKg": 0.38,
+      "waterLPerKg": 102.5,
+      "isProxy": true,
+      "proxyNote": "Attributed to the dominant ingredient. Excludes cooking oil and dairy, so this is a conservative floor.",
+      "verified": true
+    },
+    {
+      "category": "cooked_sweets",
+      "commodityGroup": "Milk",
+      "co2eKgPerKg": 3.15,
+      "landM2PerKg": 8.95,
+      "waterLPerKg": 628.2,
+      "isProxy": true,
+      "proxyNote": "Indian sweets are typically milk-and-sugar composites. Milk is the dominant ingredient group; cane sugar is not added separately because the split is not sourced.",
+      "verified": true
+    },
+    {
+      "category": "oils_fats",
+      "commodityGroup": "Groundnuts",
+      "co2eKgPerKg": 3.23,
+      "landM2PerKg": 9.11,
+      "waterLPerKg": 1852.3,
+      "isProxy": true,
+      "proxyNote": "Groundnut is the common cooking-oil crop in North India. This is the crop-stage group rather than refined oil, so it is a floor: refining and the crop-to-oil yield ratio would both raise it.",
+      "verified": true
+    },
+    {
+      "category": "packaged_dry_goods",
+      "commodityGroup": "Wheat & Rye",
+      "co2eKgPerKg": 1.57,
+      "landM2PerKg": 3.85,
+      "waterLPerKg": 647.5,
+      "isProxy": true,
+      "proxyNote": "Heterogeneous category. Uses the most common staple base as a stand-in; surfaced as low precision in the UI.",
+      "verified": true
+    },
+    {
+      "category": "material_textiles",
+      "commodityGroup": null,
+      "co2eKgPerKg": null,
+      "landM2PerKg": null,
+      "waterLPerKg": null,
+      "notQuantified": true,
+      "notQuantifiedReason": "Poore & Nemecek covers food only. A sourced textile reuse factor was not obtained inside the build window, so ReLoop reports material diversions by mass and explicitly does not quantify their footprint.",
+      "verified": true
+    },
+    {
+      "category": "material_paper_card",
+      "commodityGroup": null,
+      "co2eKgPerKg": null,
+      "landM2PerKg": null,
+      "waterLPerKg": null,
+      "notQuantified": true,
+      "notQuantifiedReason": "No sourced non-food factor obtained inside the build window. Reported by mass only.",
+      "verified": true
+    },
+    {
+      "category": "material_household_goods",
+      "commodityGroup": null,
+      "co2eKgPerKg": null,
+      "landM2PerKg": null,
+      "waterLPerKg": null,
+      "notQuantified": true,
+      "notQuantifiedReason": "No sourced non-food factor obtained inside the build window. Reported by mass only.",
+      "verified": true
+    }
+  ]
+}

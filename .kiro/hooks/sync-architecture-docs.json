@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Regenerate architecture summary when orchestration changes",
+      "trigger": "PostFileSave",
+      "description": "Keeps the README architecture section in sync with the real agent orchestration code, and flags violations of the agent-architecture invariants.",
+      "matcher": "src[\\\\/]agents[\\\\/].*\\.(ts|tsx)$",
+      "action": {
+        "type": "agent",
+        "prompt": "Agent orchestration code under src/agents/ has changed. Update the \"Architecture\" section of README.md so the documentation cannot drift from the implementation.\n\nSteps:\n1. Read the changed files plus src/agents/registry.ts and src/agents/orchestrator/ to determine the current set of agents, each agent's scoped tool access, and the actual state-machine transitions.\n2. Rewrite ONLY the section of README.md between the markers `<!-- ARCH:START -->` and `<!-- ARCH:END -->`. If those markers do not exist yet, add them under an `## Architecture` heading. Do not touch any other part of README.md.\n3. The regenerated section must contain, in at most 250 words: the list of agents with one-line responsibilities, each agent's tools, the state-machine transition sequence as it exists in code, and the blackboard coordination note (agents coordinate via the Match document and the append-only AgentEvent log, never by calling each other).\n4. Verify against .kiro/steering/agent-architecture.md. If the code now violates one of the invariants there (agents importing each other, an agent with unscoped tool access, a state transition that emits no AgentEvent, the partner agent sharing context with the negotiation agent, or a multi-step loop inside advance()), state the violation explicitly at the end of your response. Do not silently document a violated invariant as if it were intended.\n5. Do not invent agents, tools, or transitions that are not present in the code."
+      }
+    }
+  ]
+}

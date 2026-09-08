@@ -1,0 +1,54 @@
+{
+  "name": "reloop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:sources": "tsx src/scripts/verify-sources.ts",
+    "seed": "tsx src/scripts/seed.ts",
+    "geocode:seed": "tsx src/scripts/geocode-seed.ts",
+    "check": "npm run typecheck && npm run lint && npm run verify:sources && npm run test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.124.0",
+    "@node-rs/argon2": "2.2.0",
+    "date-fns": "4.4.0",
+    "jose": "6.2.12",
+    "maplibre-gl": "6.8.0",
+    "mongoose": "8.24.4",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.5.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "dotenv": "17.4.2",
+    "eslint": "10.10.0",
+    "eslint-config-next": "16.3.4",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "postcss": "8.5.28",
+    "prettier": "3.9.6",
+    "prettier-plugin-tailwindcss": "0.8.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.13",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0",
+    "vitest": "5.0.0"
+  }
+}
