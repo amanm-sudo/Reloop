@@ -22,17 +22,17 @@ Each task cites the requirements it satisfies.
 ## Checkpoint 1 — Days 1–3: Foundation
 
 ### Day 1 — Skeleton and data layer
-- [ ] 1.1 Scaffold Next.js 15 + TypeScript `strict` + Tailwind v4; set up the palette tokens from design §6.1. (NFR-1, NFR-5)
-- [ ] 1.2 ESLint + Prettier + Vitest + `tsc --noEmit` wired into `npm run check`. Needed before the lint hook can work.
-- [ ] 1.3 Mongoose connection helper with serverless connection caching; `.env.example` with every variable documented. (NFR-4, NFR-8)
-- [ ] 1.4 All schemas from design §5: `User`, `RecipientProfile`, `InventoryItem`, `Match`, `AgentRun`, `AgentEvent`, `ImpactLog`, plus the four indexes. (FR-1, FR-7)
-- [ ] 1.5 Auth: register, login, logout; Argon2id; `jose` JWT in an HTTP-only cookie; route-handler session guard. (FR-1.1, FR-1.3, §8)
-- [ ] 1.6 **`AgentEvent` write helper + the feed API endpoint, on day one.** The feed is first-class data, not a later feature — every subsequent task appends to it. (FR-7.1)
+- [x] 1.1 Scaffold Next.js + TypeScript `strict` + Tailwind v4; set up the palette tokens from design §6.1. (NFR-1, NFR-5) — **Next 16, not 15:** Next 15 pulls a vulnerable postcss transitively and the only fix is the major bump. Taken on day one while it was free.
+- [x] 1.2 ESLint + Prettier + Vitest + `tsc --noEmit` wired into `npm run check`. — **`eslint-config-next` is not used:** it bundles an eslint-plugin-react build that calls the pre-10 rule context API and crashes the run. Composed `@next/eslint-plugin-next` + `eslint-plugin-react-hooks` + `typescript-eslint` directly instead. The agents-must-not-import-each-other invariant is enforced here as a lint rule.
+- [x] 1.3 Mongoose connection helper with serverless connection caching; `.env.example` with every variable documented. (NFR-4, NFR-8)
+- [x] 1.4 All schemas from design §5: `User`, `RecipientProfile`, `InventoryItem`, `Match`, `AgentRun`, `AgentEvent`, `ImpactLog`, plus the indexes. (FR-1, FR-7)
+- [x] 1.5 Auth: register, login, logout; Argon2id; `jose` JWT in an HTTP-only cookie; route-handler session guard. (FR-1.1, FR-1.3, §8)
+- [x] 1.6 **`AgentEvent` write helper + the feed API endpoint, on day one.** (FR-7.1)
 
 ### Day 2 — Reference data and Perception
-- [ ] 2.1 Build `data/shelf-life.json` from USDA FoodKeeper for ~40 categories relevant to Indian households (dal, atta, paneer, cooked sabzi, leafy greens, milk, curd, roti, rice, fruit). Every row carries `source` + `sourceNote`. (FR-3.2, FR-3.3)
-- [ ] 2.2 Build `data/impact-factors.json` from Poore & Nemecek 2018 (CO2e, water, land) with dataset/year/url per row. (FR-6.2)
-- [ ] 2.3 `scripts/verify-sources.ts` — fails if any reference row lacks `source`. Wire into `npm run check`. (FR-6.5)
+- [x] 2.1 `data/shelf-life.json` — 32 categories relevant to Indian households, every row with a source note. (FR-3.2, FR-3.3) **Known gap:** the FSIS FoodKeeper feed returns HTTP 403 to automated download, so the table was authored by hand. 11 rows are `verified: true` against the FDA Cold Food Storage Chart (the safety-critical ones: cooked leftovers, raw poultry, raw fish, eggs, milk, paneer); 21 are category generalisations awaiting a manual FoodKeeper pass. Documented in `data/README.md` and warned on every `verify:sources` run.
+- [x] 2.2 `data/impact-factors.json` — real Poore & Nemecek 2018 CO2e/water/land values fetched from the Our World in Data series, with per-row commodity group, proxy flag and proxy rationale. Proxies that would overstate a saving (paneer, ghee, oil) deliberately use the conservative group. Materials are `notQuantified` rather than estimated. (FR-6.2, FR-6.4, FR-6.5)
+- [x] 2.3 `src/scripts/verify-sources.ts` — fails on a missing source, a category with no row, an unknown category, a duplicate row, or a quantified row with no named commodity group. Wired into `npm run check`. (FR-6.5)
 - [ ] 2.4 Agent interface, `AgentContext`, tool registry with **per-agent scoped tool access**. (design §4)
 - [ ] 2.5 Perception Agent: upload route, Claude vision call, Zod-validated `ExtractedItem[]`, confidence gating at 0.6. (FR-2.1, FR-2.2)
 - [ ] 2.6 Fixture layer: `DEMO_MODE` resolves Perception from `fixtures/` keyed by image SHA-256; `fixture: true` flag flows to the UI. (FR-2.6, FR-11.4)
