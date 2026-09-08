@@ -98,11 +98,12 @@ export const MATCH_STATES = [
 ] as const;
 export type MatchState = (typeof MATCH_STATES)[number];
 
-export const TERMINAL_MATCH_STATES: readonly MatchState[] = [
-  'IMPACT_LOGGED',
-  'COMPOST_DIVERTED',
-  'FAILED',
-];
+/**
+ * `COMPOST_DIVERTED` is deliberately NOT terminal. A composted outcome still gets an ImpactLog —
+ * with the landfill-diversion credit only — so it flows on to `IMPACT_LOGGED`. Ending the run at
+ * COMPOST_DIVERTED would leave the one outcome we most need to account for unaccounted.
+ */
+export const TERMINAL_MATCH_STATES: readonly MatchState[] = ['IMPACT_LOGGED', 'FAILED'];
 
 export function isTerminal(state: MatchState): boolean {
   return TERMINAL_MATCH_STATES.includes(state);

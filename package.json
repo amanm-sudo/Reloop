@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "smoke": "node scripts/smoke.mjs",
     "verify:sources": "tsx src/scripts/verify-sources.ts",
     "seed": "tsx src/scripts/seed.ts",
     "geocode:seed": "tsx src/scripts/geocode-seed.ts",
@@ -31,7 +32,8 @@
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "3.25.76"
+    "zod": "3.25.76",
+    "zod-to-json-schema": "3.25.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
@@ -42,6 +44,7 @@
     "eslint": "10.10.0",
     "eslint-config-next": "16.3.4",
     "eslint-plugin-react-hooks": "7.1.1",
+    "mongodb-memory-server": "11.2.0",
     "postcss": "8.5.28",
     "prettier": "3.9.6",
     "prettier-plugin-tailwindcss": "0.8.1",

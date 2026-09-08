@@ -1,0 +1,82 @@
+{
+  "source": {
+    "service": "Nominatim (OpenStreetMap)",
+    "url": "https://nominatim.openstreetmap.org/",
+    "retrievedAt": "2026-09-08",
+    "note": "Geocoded once at authoring time and committed. Coordinates are real localities in Lucknow; the organisations placed at them are modelled on how real recovery networks operate and are not active partnerships."
+  },
+  "places": [
+    {
+      "key": "gomti_nagar",
+      "query": "Gomti Nagar, Lucknow, Uttar Pradesh, India",
+      "role": "donor household",
+      "lng": 81.00392,
+      "lat": 26.861174,
+      "displayName": "Gomti Nagar, Shaheed Path Flyover, Vineet Khand, Gomti Nagar, Lucknow, Uttar Pradesh, 226010, India"
+    },
+    {
+      "key": "indira_nagar",
+      "query": "Indira Nagar, Lucknow, Uttar Pradesh, India",
+      "role": "donor household",
+      "lng": 80.990034,
+      "lat": 26.882318,
+      "displayName": "Indira Nagar, Lucknow, Uttar Pradesh, 255001, India"
+    },
+    {
+      "key": "hazratganj",
+      "query": "Hazratganj, Lucknow, Uttar Pradesh, India",
+      "role": "NGO chapter base",
+      "lng": 80.9432,
+      "lat": 26.847528,
+      "displayName": "Hazratganj, Lucknow, Uttar Pradesh, India"
+    },
+    {
+      "key": "aishbagh",
+      "query": "Aishbagh, Lucknow, Uttar Pradesh, India",
+      "role": "community fridge",
+      "lng": 80.909795,
+      "lat": 26.837359,
+      "displayName": "Aishbagh, Aishbagh Road Flyover, Moti Nagar, Lucknow, Uttar Pradesh, 226004, India"
+    },
+    {
+      "key": "alambagh",
+      "query": "Alambagh, Lucknow, Uttar Pradesh, India",
+      "role": "NGO chapter base",
+      "lng": 80.902512,
+      "lat": 26.81401,
+      "displayName": "Alambagh, Kanpur-Lucknow Road, Alambagh, Lucknow, Uttar Pradesh, 226005, India"
+    },
+    {
+      "key": "chinhat",
+      "query": "Chinhat, Lucknow, Uttar Pradesh, India",
+      "role": "canteen / business surplus",
+      "lng": 81.035559,
+      "lat": 26.875144,
+      "displayName": "Chinhat, Lucknow, Uttar Pradesh, 226028, India"
+    },
+    {
+      "key": "naka_hindola",
+      "query": "Naka Hindola, Lucknow, Uttar Pradesh, India",
+      "role": "gurdwara langar surplus programme",
+      "lng": 80.923278,
+      "lat": 26.838276,
+      "displayName": "Naka Hindola, Lucknow, Uttar Pradesh, 226018, India"
+    },
+    {
+      "key": "mohanlalganj",
+      "query": "Mohanlalganj, Lucknow, Uttar Pradesh, India",
+      "role": "municipal waste processing / compost site (the Shivri plant sits in this block)",
+      "lng": 81.067043,
+      "lat": 26.672227,
+      "displayName": "Mohanlalganj, Lucknow, Uttar Pradesh, India"
+    },
+    {
+      "key": "faizabad_road",
+      "query": "Faizabad Road, Lucknow, Uttar Pradesh, India",
+      "role": "biogas partner",
+      "lng": 81.02587,
+      "lat": 26.874678,
+      "displayName": "Faizabad Road, Chinhat, Lucknow, Uttar Pradesh, 226028, India"
+    }
+  ]
+}

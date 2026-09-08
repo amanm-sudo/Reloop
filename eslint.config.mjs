@@ -10,6 +10,9 @@ import tseslint from 'typescript-eslint';
  * @next/eslint-plugin-next + eslint-plugin-react-hooks + typescript-eslint directly keeps every
  * rule we actually rely on and stays on a supported ESLint.
  */
+/** Must stay in step with AGENT_IDS in src/lib/domain.ts. */
+const AGENTS = ['perception', 'prediction', 'negotiation', 'logistics', 'impact', 'partner'];
+
 export default tseslint.config(
   {
     ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', 'coverage/**'],
@@ -31,27 +34,23 @@ export default tseslint.config(
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
-  {
-    /**
-     * Architectural invariant, enforced by the linter rather than by prompt instruction:
-     * agents coordinate through the Match blackboard and the AgentEvent log, never by
-     * importing one another. See .kiro/steering/agent-architecture.md.
-     */
-    files: ['src/agents/**/*.ts'],
+  /**
+   * Architectural invariant, enforced by the linter rather than by prompt instruction: agents
+   * coordinate through the Match blackboard and the AgentEvent log, never by importing one
+   * another. See .kiro/steering/agent-architecture.md.
+   *
+   * One block per agent, each forbidding only the *other* agents — an agent importing its own
+   * prompt, schema or policy module is normal and must stay allowed.
+   */
+  ...AGENTS.map((self) => ({
+    files: [`src/agents/${self}/**/*.ts`],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: [
-                '@/agents/perception/*',
-                '@/agents/prediction/*',
-                '@/agents/negotiation/*',
-                '@/agents/logistics/*',
-                '@/agents/impact/*',
-                '@/agents/partner/*',
-              ],
+              group: AGENTS.filter((other) => other !== self).map((other) => `@/agents/${other}/*`),
               message:
                 'Agents must not import each other. Coordinate through the Match blackboard and the AgentEvent log (see .kiro/steering/agent-architecture.md).',
             },
@@ -59,7 +58,7 @@ export default tseslint.config(
         },
       ],
     },
-  },
+  })),
   {
     // The orchestrator and the registry are the two places that legitimately know all agents.
     files: ['src/agents/orchestrator/**/*.ts', 'src/agents/registry.ts'],
@@ -71,5 +70,18 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
       'no-console': 'off',
     },
+  },
+  {
+    /*
+     * `react-hooks/purity` cannot distinguish a React Server Component from a client one, and it
+     * flags reading the clock during render. Every page and layout in this project is a server
+     * component (none carries 'use client'), where reading the current time per request is exactly
+     * correct — the pages that do it are also marked `dynamic = 'force-dynamic'`.
+     *
+     * The rule stays on everywhere under src/components, which is where the hydration hazard it
+     * exists to catch actually lives.
+     */
+    files: ['src/app/**/page.tsx', 'src/app/**/layout.tsx'],
+    rules: { 'react-hooks/purity': 'off' },
   }
 );

@@ -498,3 +498,18 @@ reversal is noted.
 | 6 | Compost/biogas modelled as a real `RecipientProfile` org type with real Lucknow coordinates, not an abstract sink | Low |
 | 7 | Impact factors: Poore & Nemecek 2018 primary (gives CO2e **and** water **and** land per kg); WRAP UK as cross-check only | Low — factor files are data, not code |
 | 8 | Telegram bot token created on Day 0, implemented Days 11–12 as scheduled | n/a |
+
+## 14. Deviations From This Design, As Built
+
+Recorded because a design doc that quietly disagrees with the code is worse than no design doc.
+
+| Area | Design said | Built | Why |
+| --- | --- | --- | --- |
+| Live updates (§2) | SSE endpoint per run with a 1 s polling fallback | Polling only, 1.2 s, which also drives `advance()` | The poll had to exist anyway as the fallback, and it doubles as the run driver. SSE would have added a second code path for no gain against a ≤3 s requirement. |
+| Framework (§2) | Next.js 15 | Next.js 16 | Next 15 pulls a vulnerable postcss transitively; the only fix is the major bump, taken on day one while it was free. |
+| Lint (§2) | `eslint-config-next` | `@next/eslint-plugin-next` + `eslint-plugin-react-hooks` + `typescript-eslint` composed directly | `eslint-config-next` bundles an eslint-plugin-react build that calls the pre-ESLint-10 rule context API and crashes the whole run. |
+| Perception fixtures (§7) | JSON under `fixtures/` | Typed module at `src/agents/perception/fixtures.ts` | Type-checked against the extraction schema, so a fixture cannot drift out of shape silently. Resolution is still by image SHA-256, plus an explicit key for the demo path. |
+| Negotiation tools (§4.3) | Anthropic tool-calling loop | Registry-scoped capability functions the agent calls; a genuine tool-use loop only on the Partner Agent | Tool-calling earns its keep where the model genuinely chooses — the counterparty picking accept/counter/decline. Elsewhere the decisions are deterministic by design (§13.4), so a tool loop would have been ceremony. Scoping is still enforced in code via `assertMayUse`. |
+| E2E (§10) | Playwright smoke over the demo path | `npm run smoke`: boots a throwaway MongoDB and the production build, seeds, and drives the full run over HTTP | Catches what actually breaks a demo (server path, indexes, window fitting) in seconds with no browser download. **Layout and client behaviour at 390 px are not covered and still need a human pass.** |
+| Pickup windows (§4.5) | Up to three 30-minute windows | Same, but the window narrows and stops rounding to the half hour when under two hours remain | Found by the smoke test: a 1-hour runway minus travel slack minus half-hour rounding left no slot, sending genuinely rescuable urgent food to compost while a recipient sat open and willing. |
+| Operating hours (§5) | `{day, open, close}` per day | Same, plus windows that cross midnight | A night shelter kitchen is the recipient still reachable at 10 PM, which is exactly when households have cooked surplus. Without it the demo silently became a composting demo after 21:30. |

@@ -26,6 +26,13 @@ const agentRunSchema = new Schema(
     totalCostUsd: { type: Number, required: true, default: 0 },
     startedAt: { type: Date, required: true, default: () => new Date() },
     endedAt: { type: Date, required: false },
+
+    /**
+     * The last event this run emitted, carried across transitions so `AgentEvent.causedBy` forms
+     * one unbroken chain for the whole run. Without this, each `advance()` call would start a
+     * fresh chain and the feed could not draw the causal line that makes a run read as one loop.
+     */
+    lastEventId: { type: Schema.Types.ObjectId, ref: 'AgentEvent', required: false },
   },
   { timestamps: true }
 );
