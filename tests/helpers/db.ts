@@ -43,7 +43,8 @@ export async function startTestDb(): Promise<void> {
   process.env.SESSION_SECRET = 'test-session-secret-at-least-32-characters-long';
   process.env.DEMO_MODE = 'true';
   process.env.ALLOW_REAL_OUTREACH = 'false';
-  process.env.ANTHROPIC_API_KEY = '';
+  // Empty key plus DEMO_MODE means no test can reach a real model, by construction.
+  process.env.GEMINI_API_KEY = '';
   resetEnvCache();
 
   assertLocalDatabase();

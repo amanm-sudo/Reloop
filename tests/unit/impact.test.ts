@@ -87,6 +87,35 @@ describe('composted impact', () => {
     );
     expect(result.output.factorSource.dataset).toMatch(/WRAP/i);
   });
+
+  it('refuses to apply the food compost credit to a material', async () => {
+    /*
+     * Regression. The compost credit is WRAP's avoided landfill methane per tonne of FOOD waste.
+     * This branch used to apply it to any composted diversion, so 2.4 kg of donated clothes were
+     * credited 1.2 kg CO2e from a figure never measured on textiles — an invented number in the
+     * one place this project cannot afford one.
+     */
+    const result = await impactAgent.run(
+      { category: 'material_textiles', quantityKg: 2.4, outcome: 'COMPOSTED' },
+      ctx
+    );
+
+    expect(result.output.notQuantified).toBe(true);
+    expect(result.output.co2eKg).toBeNull();
+    expect(result.output.notQuantifiedReason).toBeTruthy();
+    expect(result.fallback).toBe('factor_not_available');
+    // And it must not claim the food story either.
+    expect(result.rationale).not.toMatch(/growing it/i);
+  });
+
+  it('still credits food that was composted', async () => {
+    const result = await impactAgent.run(
+      { category: 'cooked_curry_veg', quantityKg: 2.4, outcome: 'COMPOSTED' },
+      ctx
+    );
+    expect(result.output.notQuantified).toBe(false);
+    expect(result.output.co2eKg).toBeCloseTo(1.2, 3);
+  });
 });
 
 describe('unquantifiable categories', () => {

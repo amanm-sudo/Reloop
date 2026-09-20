@@ -52,7 +52,7 @@ Access is declared in `registry.ts` and enforced by `assertMayUse`, not requeste
 | `COUNTERED` | Negotiation evaluates against the deadline | `AGREED` · `NEGOTIATING` · escalate · `COMPOST_DIVERTED` |
 | `AGREED` | Logistics confirms and combines trips | `SCHEDULED` |
 | `SCHEDULED` | Handoff | `COMPLETED` |
-| `COMPOST_DIVERTED` | Route to nearest compost or biogas partner | `COMPLETED` · `FAILED` |
+| `COMPOST_DIVERTED` | Route to the nearest compost or biogas partner **that accepts the category** | `COMPLETED` · `FAILED` |
 | `COMPLETED` | Impact quantifies | `IMPACT_LOGGED` |
 
 Terminals are `IMPACT_LOGGED` and `FAILED`. `COMPOST_DIVERTED` is deliberately not terminal — a
@@ -68,6 +68,9 @@ append-only `AgentEvent` log. `advance()` performs exactly one transition per ca
 
 Every number the app shows traces to a row in `data/`, and every row carries its source.
 `npm run verify:sources` fails the build if that stops being true.
+
+Models run on **Google Gemini** (`@google/genai`), and the app works with no key at all — see
+Setup below.
 
 | Purpose | Source |
 | --- | --- |
@@ -113,7 +116,7 @@ npm run dev
 
 **It runs with no API key.** `DEMO_MODE=true` is the default: agent decisions are computed from the
 same rules and the same blackboard, and only the natural-language wording comes from committed
-fixtures. Every affected card in the UI is labelled `demo fixture`. Set `ANTHROPIC_API_KEY` and
+fixtures. Every affected card in the UI is labelled `demo fixture`. Set `GEMINI_API_KEY` and
 `DEMO_MODE=false` for live model calls — the orchestration path is identical either way.
 
 Seeded sign-in: `ananya@example.com` / `reloop-demo-password`.
@@ -149,8 +152,10 @@ idempotency, and the refusal to act on an unconfirmed extraction. `npm run smoke
 drives a run over HTTP end to end and asserts both sides appear in the transcript.
 
 Not verified: **layout and client-side behaviour at 390 px need a human pass** — there is no
-browser-driver suite. Live model calls are exercised by the same code path but have not been run
-against the real API in this build. Accessibility follows the rules in the steering file
+browser-driver suite. **The live Gemini path has never been run**, because the whole suite executes
+in fixture mode; the schema translation it depends on is covered by
+`tests/unit/llm-schema.test.ts`, but the first real call will be the first real call, so make it
+before the demo rather than during it. Accessibility follows the rules in the steering file
 (keyboard focus, `aria-live` on the feed, shape-plus-colour on map pins, AA contrast on the
 palette), but full conformance needs manual testing with assistive technology and is not claimed.
 

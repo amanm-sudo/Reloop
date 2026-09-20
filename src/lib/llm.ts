@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { FunctionCallingConfigMode, GoogleGenAI, type Part } from '@google/genai';
 import type { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { env } from '@/lib/env';
@@ -9,10 +9,14 @@ import { env } from '@/lib/env';
  * Two modes, one code path. When `DEMO_MODE` is on (or no API key is configured) every call
  * resolves from the deterministic fixture the caller supplies, and the returned `meta.fixture`
  * flag rides all the way to the UI so nothing is ever passed off as live that is not. The
- * orchestration around the call is identical either way — demo mode never forks the state
- * machine.
+ * orchestration around the call is identical either way — demo mode never forks the state machine.
  *
  * Model output is untrusted input: structured calls are Zod-parsed before they escape here.
+ *
+ * Provider: Google Gemini via `@google/genai`. Both entry points below are expressed as forced
+ * function calls, which is the most reliable way to get schema-conformant arguments out of a
+ * tool-using model. Because every agent goes through this module, swapping providers touched only
+ * this file — no agent, no prompt, and no test needed changing.
  */
 
 export type LlmMeta = {
@@ -29,25 +33,26 @@ export type LlmCall<T> = {
 
 /**
  * Published list prices per million tokens, used only to attribute a run's cost in the activity
- * feed. Documentation, not billing — if these drift the feed's cost figure drifts with them.
+ * feed. Documentation, not billing — if Google's prices move, this figure moves with them and the
+ * displayed cost drifts. Retrieved 2026-08-31 from https://ai.google.dev/gemini-api/docs/pricing
  */
 const PRICES_PER_MTOK: Record<string, { input: number; output: number }> = {
-  'claude-sonnet-4-5': { input: 3, output: 15 },
-  'claude-haiku-4-5': { input: 1, output: 5 },
-  'claude-opus-4-1': { input: 15, output: 75 },
+  'gemini-2.5-flash': { input: 0.3, output: 2.5 },
+  'gemini-2.5-flash-lite': { input: 0.1, output: 0.4 },
+  'gemini-2.5-pro': { input: 1.25, output: 10 },
 };
 
-const FALLBACK_PRICE = { input: 3, output: 15 };
+const FALLBACK_PRICE = { input: 0.3, output: 2.5 };
 
 function costOf(model: string, inputTokens: number, outputTokens: number): number {
   const price = PRICES_PER_MTOK[model] ?? FALLBACK_PRICE;
   return (inputTokens * price.input + outputTokens * price.output) / 1_000_000;
 }
 
-let client: Anthropic | null = null;
+let client: GoogleGenAI | null = null;
 
-function anthropic(): Anthropic {
-  client ??= new Anthropic({ apiKey: env().ANTHROPIC_API_KEY });
+function gemini(): GoogleGenAI {
+  client ??= new GoogleGenAI({ apiKey: env().GEMINI_API_KEY });
   return client;
 }
 
@@ -57,11 +62,43 @@ function anthropic(): Anthropic {
  */
 export function isLive(): boolean {
   const config = env();
-  return !config.DEMO_MODE && config.ANTHROPIC_API_KEY.length > 0;
+  return !config.DEMO_MODE && config.GEMINI_API_KEY.length > 0;
 }
 
 export function fixtureMeta(model = 'fixture'): LlmMeta {
   return { model, latencyMs: 0, costUsd: 0, fixture: true };
+}
+
+/**
+ * Gemini rejects some JSON Schema keywords that `zod-to-json-schema` emits, and it cannot follow
+ * `$ref` indirection in a function declaration. Refs are inlined at generation time and the
+ * remaining metadata keys are stripped recursively.
+ */
+export function toGeminiSchema(schema: z.ZodTypeAny): Record<string, unknown> {
+  const generated = zodToJsonSchema(schema, {
+    target: 'openApi3',
+    $refStrategy: 'none',
+  }) as Record<string, unknown>;
+
+  const strip = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(strip);
+    if (node === null || typeof node !== 'object') return node;
+
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      if (key === '$schema' || key === 'additionalProperties' || key === 'definitions') continue;
+      cleaned[key] = strip(value);
+    }
+    return cleaned;
+  };
+
+  return strip(generated) as Record<string, unknown>;
+}
+
+type GeminiUsage = { promptTokenCount?: number; candidatesTokenCount?: number };
+
+function usageOf(usage: GeminiUsage | undefined): { input: number; output: number } {
+  return { input: usage?.promptTokenCount ?? 0, output: usage?.candidatesTokenCount ?? 0 };
 }
 
 export type ImageInput = { mediaType: 'image/jpeg' | 'image/png' | 'image/webp'; base64: string };
@@ -82,8 +119,7 @@ export type StructuredRequest<S extends z.ZodTypeAny> = {
 };
 
 /**
- * Structured generation via a single-tool forced call, which is the most reliable way to get
- * schema-conformant JSON out of a tool-using model.
+ * Structured generation via a single forced function call.
  */
 export async function callStructured<S extends z.ZodTypeAny>(
   request: StructuredRequest<S>
@@ -93,45 +129,52 @@ export async function callStructured<S extends z.ZodTypeAny>(
   }
 
   const config = env();
-  const model = request.vision ? config.ANTHROPIC_VISION_MODEL : config.ANTHROPIC_MODEL;
+  const model = request.vision ? config.GEMINI_VISION_MODEL : config.GEMINI_MODEL;
   const startedAt = Date.now();
 
-  const content: Anthropic.ContentBlockParam[] = [];
+  const parts: Part[] = [];
   for (const image of request.images ?? []) {
-    content.push({
-      type: 'image',
-      source: { type: 'base64', media_type: image.mediaType, data: image.base64 },
-    });
+    parts.push({ inlineData: { mimeType: image.mediaType, data: image.base64 } });
   }
-  content.push({ type: 'text', text: request.prompt });
+  parts.push({ text: request.prompt });
 
-  const response = await anthropic().messages.create({
+  const response = await gemini().models.generateContent({
     model,
-    max_tokens: request.maxTokens ?? 2048,
-    system: request.system,
-    messages: [{ role: 'user', content }],
-    tools: [
-      {
-        name: request.schemaName,
-        description: request.schemaDescription,
-        input_schema: zodToJsonSchema(request.schema, {
-          target: 'openApi3',
-        }) as Anthropic.Tool.InputSchema,
+    contents: [{ role: 'user', parts }],
+    config: {
+      systemInstruction: request.system,
+      maxOutputTokens: request.maxTokens ?? 2048,
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: request.schemaName,
+              description: request.schemaDescription,
+              parametersJsonSchema: toGeminiSchema(request.schema),
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.ANY,
+          allowedFunctionNames: [request.schemaName],
+        },
       },
-    ],
-    tool_choice: { type: 'tool', name: request.schemaName },
+    },
   });
 
   const latencyMs = Date.now() - startedAt;
-  const costUsd = costOf(model, response.usage.input_tokens, response.usage.output_tokens);
+  const { input, output } = usageOf(response.usageMetadata);
+  const costUsd = costOf(model, input, output);
 
-  const block = response.content.find((c) => c.type === 'tool_use');
-  if (!block || block.type !== 'tool_use') {
+  const call = response.functionCalls?.[0];
+  if (!call?.args) {
     throw new Error(`${request.schemaName}: model returned no structured output`);
   }
 
   // Model output is untrusted input.
-  const parsed = request.schema.safeParse(block.input);
+  const parsed = request.schema.safeParse(call.args);
   if (!parsed.success) {
     throw new Error(
       `${request.schemaName}: model output failed validation — ${parsed.error.issues
@@ -181,47 +224,54 @@ export async function callChoice(request: ChoiceRequest): Promise<ChoiceResult> 
   const config = env();
   const startedAt = Date.now();
 
-  const response = await anthropic().messages.create({
-    model: config.ANTHROPIC_MODEL,
-    max_tokens: request.maxTokens ?? 1024,
-    system: request.system,
-    messages: [{ role: 'user', content: [{ type: 'text', text: request.prompt }] }],
-    tools: request.tools.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      input_schema: zodToJsonSchema(tool.schema, {
-        target: 'openApi3',
-      }) as Anthropic.Tool.InputSchema,
-    })),
-    tool_choice: { type: 'any' },
+  const response = await gemini().models.generateContent({
+    model: config.GEMINI_MODEL,
+    contents: [{ role: 'user', parts: [{ text: request.prompt }] }],
+    config: {
+      systemInstruction: request.system,
+      maxOutputTokens: request.maxTokens ?? 1024,
+      tools: [
+        {
+          functionDeclarations: request.tools.map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            parametersJsonSchema: toGeminiSchema(tool.schema),
+          })),
+        },
+      ],
+      toolConfig: {
+        functionCallingConfig: {
+          // ANY forces a choice, but leaves which one entirely to the model.
+          mode: FunctionCallingConfigMode.ANY,
+          allowedFunctionNames: request.tools.map((tool) => tool.name),
+        },
+      },
+    },
   });
 
   const latencyMs = Date.now() - startedAt;
-  const costUsd = costOf(
-    config.ANTHROPIC_MODEL,
-    response.usage.input_tokens,
-    response.usage.output_tokens
-  );
+  const { input, output } = usageOf(response.usageMetadata);
+  const costUsd = costOf(config.GEMINI_MODEL, input, output);
 
-  const block = response.content.find((c) => c.type === 'tool_use');
-  if (!block || block.type !== 'tool_use') {
+  const call = response.functionCalls?.[0];
+  if (!call?.name) {
     throw new Error('partner agent returned no decision');
   }
 
-  const tool = request.tools.find((t) => t.name === block.name);
+  const tool = request.tools.find((candidate) => candidate.name === call.name);
   if (!tool) {
-    throw new Error(`model chose an unknown tool "${block.name}"`);
+    throw new Error(`model chose an unknown tool "${call.name}"`);
   }
 
-  const parsed = tool.schema.safeParse(block.input);
+  const parsed = tool.schema.safeParse(call.args ?? {});
   if (!parsed.success) {
-    throw new Error(`${block.name}: arguments failed validation`);
+    throw new Error(`${call.name}: arguments failed validation`);
   }
 
   return {
-    tool: block.name,
+    tool: call.name,
     input: parsed.data,
-    meta: { model: config.ANTHROPIC_MODEL, latencyMs, costUsd, fixture: false },
+    meta: { model: config.GEMINI_MODEL, latencyMs, costUsd, fixture: false },
   };
 }
 

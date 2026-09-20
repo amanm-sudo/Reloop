@@ -12,7 +12,7 @@ Each task cites the requirements it satisfies.
 ## Checkpoint 0 — Day 0 (2 hours, before Day 1)
 
 - [ ] 0.1 Create the Telegram bot via BotFather, store the token in `.env.local`. _Five minutes now removes all external-approval risk from Day 11._ (FR-10)
-- [ ] 0.2 Create MongoDB Atlas free cluster, Vercel project, Anthropic API key.
+- [ ] 0.2 Create MongoDB Atlas free cluster, Vercel project, Gemini API key (https://aistudio.google.com/apikey).
 - [ ] 0.3 `git init`, first commit, push public repo. Commit early and often — commit history is judged.
 
 **Pace gate:** all four external accounts exist and a hello-world Next.js app is deployed to Vercel.
@@ -157,7 +157,7 @@ tests against a real MongoDB, plus `npm run smoke` driving a full run over HTTP.
 
 Left for you, because none of it can be done from here:
 
-1. **Accounts** (checkpoint 0) — Atlas cluster, Vercel project, Anthropic key, BotFather bot.
+1. **Accounts** (checkpoint 0) — Atlas cluster, Vercel project, Gemini key, BotFather bot.
 2. **Deploy** (13.7, 14.4) — then three clean demo runs from a fresh seed.
 3. **A 390 px pass by hand** — no automated check covers layout or client behaviour.
 4. **One live-model run** (13.5) to confirm the cost ceiling and that live wording reads well.

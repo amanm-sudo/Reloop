@@ -1,5 +1,5 @@
 import { fixtureMeta } from '@/lib/llm';
-import type { ItemCategory } from '@/lib/domain';
+import { kindOf, type ItemCategory } from '@/lib/domain';
 import { impactTable, lookupFactors } from '@/lib/reference-data';
 import { formatMass } from '@/lib/units';
 import { toolsFor } from '@/agents/registry';
@@ -77,8 +77,43 @@ export const impactAgent: Agent<ImpactInput, ImpactOutput> = {
       },
     ];
 
-    // --- Composted: landfill-diversion credit only. ---
+    // --- Composted: landfill-diversion credit only, and only for food. ---
     if (input.outcome === 'COMPOSTED') {
+      /*
+       * The compost credit is a food-waste figure: WRAP's avoided landfill methane per tonne of
+       * food. Applying it to textiles or household goods would be inventing a number for a
+       * material it was never measured on — the precise failure this agent exists to prevent. A
+       * category with no cited factor gets no figure, whichever way it was diverted.
+       */
+      if (kindOf(input.category) === 'MATERIAL' || factor.notQuantified) {
+        const output: ImpactOutput = {
+          outcome: 'COMPOSTED',
+          quantityKg: input.quantityKg,
+          co2eKg: null,
+          waterL: null,
+          landM2: null,
+          notQuantified: true,
+          notQuantifiedReason:
+            factor.notQuantifiedReason ??
+            'The compost credit is measured on food waste and does not transfer to this category.',
+          factorSource: {
+            dataset: table.dataset.name,
+            year: table.dataset.year,
+            url: table.dataset.url,
+            isProxy: false,
+            factorValues: {},
+          },
+        };
+
+        return {
+          output,
+          rationale: `${formatMass(input.quantityKg)} diverted from landfill. Footprint not quantified — the compost figure is a food-waste measurement and does not apply here.`,
+          toolCalls,
+          meta: { ...fixtureMeta('deterministic'), latencyMs: Date.now() - startedAt },
+          fallback: 'factor_not_available',
+        };
+      }
+
       const compost = table.compostFallback;
       const co2eKg = round(input.quantityKg * compost.co2eKgPerKgDiverted, 3);
 

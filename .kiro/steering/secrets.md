@@ -11,7 +11,7 @@ and a credibility hit with judges.
 - Never commit `.env`, `.env.local`, `.env.production`, `*.pem`, or `service-account*.json`.
 - Never log a secret. Redact before logging: log the variable **name**, never its value.
 - Never send project secrets or user data to any third-party endpoint that is not an
-  explicitly configured provider (Anthropic, MongoDB Atlas, OSRM, Telegram).
+  explicitly configured provider (Google Gemini, MongoDB Atlas, OSRM/OpenStreetMap, Telegram).
 
 ## Always
 
@@ -30,7 +30,7 @@ and a credibility hit with judges.
 | Variable | Scope | Purpose |
 | --- | --- | --- |
 | `MONGODB_URI` | server | Atlas connection string |
-| `ANTHROPIC_API_KEY` | server | All five agents + vision |
+| `GEMINI_API_KEY` | server | All five agents + vision. Empty means fixture mode. |
 | `SESSION_SECRET` | server | JWT signing (min 32 bytes) |
 | `TELEGRAM_BOT_TOKEN` | server | Bot API |
 | `TELEGRAM_WEBHOOK_SECRET` | server | Verifies inbound webhook header |

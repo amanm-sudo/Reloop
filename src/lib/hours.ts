@@ -137,33 +137,61 @@ export function proposeWindows(input: ProposeWindowsInput): Window[] {
     input.durationMin ?? (tight ? Math.max(10, Math.floor(runwayMin / 2)) : 30);
   const stepMinutes = tight ? 5 : 30;
 
+  /*
+   * A window may be shorter than the ideal duration if that is what fits before the recipient
+   * closes.
+   *
+   * Requiring a full-length slot entirely inside opening hours contradicts how the candidate
+   * scorer decides eligibility — `timingFit` counts a recipient as viable if it is open for *part*
+   * of the freshness window. That mismatch meant a night kitchen open until 01:30 was ranked first
+   * and then handed no window at all, so the food was composted while somebody was still there to
+   * take it. "Come in the next twenty minutes, before we close" is a real offer and now gets made.
+   */
+  const minDurationMin = tight ? 10 : 20;
+
   const startMs =
     Math.ceil(input.earliest.getTime() / (stepMinutes * MS_PER_MIN)) * (stepMinutes * MS_PER_MIN);
-  const viable: Date[] = [];
+  const viable: Window[] = [];
 
-  for (let ms = startMs; ms + durationMin * MS_PER_MIN <= input.latest.getTime(); ms += stepMinutes * MS_PER_MIN) {
+  for (
+    let ms = startMs;
+    ms + minDurationMin * MS_PER_MIN <= input.latest.getTime();
+    ms += stepMinutes * MS_PER_MIN
+  ) {
     const start = new Date(ms);
-    const end = new Date(ms + durationMin * MS_PER_MIN);
-    if (isOpenAt(input.hours, start) && isOpenAt(input.hours, end)) {
-      viable.push(start);
+    if (!isOpenAt(input.hours, start)) continue;
+
+    // Longest end that is still open and still inside the freshness deadline.
+    const maxByDeadline = (input.latest.getTime() - ms) / MS_PER_MIN;
+    let chosenEnd: Date | null = null;
+
+    for (let d = Math.min(durationMin, maxByDeadline); d >= minDurationMin; d -= 5) {
+      const end = new Date(ms + d * MS_PER_MIN);
+      if (isOpenAt(input.hours, end)) {
+        chosenEnd = end;
+        break;
+      }
     }
+
+    if (chosenEnd) viable.push({ start, end: chosenEnd });
+
     // Guard against a pathological range producing an unbounded scan.
     if (viable.length > 200) break;
   }
 
   if (viable.length === 0) return [];
-  if (viable.length <= count) {
-    return viable.map((start) => ({ start, end: new Date(start.getTime() + durationMin * MS_PER_MIN) }));
-  }
+  if (viable.length <= count) return viable;
 
-  const picked: Date[] = [];
+  const picked: Window[] = [];
   for (let i = 0; i < count; i += 1) {
     const index = Math.round((i * (viable.length - 1)) / (count - 1 || 1));
-    const start = viable[index];
-    if (start && !picked.some((p) => p.getTime() === start.getTime())) picked.push(start);
+    const window = viable[index];
+    if (window && !picked.some((p) => p.start.getTime() === window.start.getTime())) {
+      picked.push(window);
+    }
   }
 
-  return picked.map((start) => ({ start, end: new Date(start.getTime() + durationMin * MS_PER_MIN) }));
+  return picked;
 }
 
 /** Fraction of the remaining freshness window during which the recipient is open. 0 means never. */

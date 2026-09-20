@@ -9,6 +9,7 @@ import { advance } from '@/agents/orchestrator';
 import { AgentEvent } from '@/models/agent-event';
 import { AgentRun } from '@/models/agent-run';
 import { ImpactLog } from '@/models/impact-log';
+import { InventoryItem } from '@/models/inventory-item';
 import { Match } from '@/models/match';
 import { RecipientProfile } from '@/models/recipient-profile';
 import { User } from '@/models/user';
@@ -37,6 +38,8 @@ const HAZRATGANJ: [number, number] = [80.9432, 26.847528];
 const MOHANLALGANJ: [number, number] = [81.067043, 26.672227];
 
 const COOKED: ItemCategory[] = ['cooked_curry_veg', 'cooked_dal', 'cooked_rice_dish'];
+/** An organic waste route must take every food category, or some food has no route at all. */
+const SINK_ACCEPTS: ItemCategory[] = [...COOKED, 'protein_fish_raw', 'produce_leafy_greens'];
 
 async function seedWorld(options: { langarCapacityUsedKg?: number } = {}): Promise<void> {
   await User.create({
@@ -81,7 +84,7 @@ async function seedWorld(options: { langarCapacityUsedKg?: number } = {}): Promi
       orgType: 'COMPOST',
       location: { type: 'Point', coordinates: MOHANLALGANJ },
       coverageRadiusKm: 40,
-      acceptedCategories: COOKED,
+      acceptedCategories: SINK_ACCEPTS,
       coldChainCapable: false,
       dailyCapacityKg: 2000,
       capacityUsedTodayKg: 0,
@@ -272,6 +275,50 @@ describe('the compost fallback', () => {
     expect(impact?.landM2).toBe(0);
     expect(impact?.co2eKg).toBeCloseTo(0.4, 3); // 0.8 kg x 0.5
     expect(impact?.factorSource?.dataset).toMatch(/WRAP/i);
+  });
+});
+
+describe('materials that nobody can take', () => {
+  it('does not send them to a composting plant, and does not write a fabricated saving', async () => {
+    /*
+     * Regression. Donated clothes with no reuse partner in range used to be routed to the organic
+     * waste site — which does not take textiles — and then credited with a food-waste landfill
+     * figure. Two wrongs: an impossible pickup and an invented number.
+     */
+    await seedWorld();
+
+    const ingested = await ingestItem({
+      userId: DONOR_ID,
+      runId: new Types.ObjectId(),
+      name: 'Winter clothes',
+      category: 'material_textiles',
+      quantity: 4,
+      unit: 'pcs',
+      quantityKg: 2.4,
+      storage: 'PANTRY',
+      isCooked: false,
+      // Inside the material action window, so urgency crosses the threshold on the real formula.
+      userDeadlineAt: new Date(NOW.getTime() + 96 * HOUR),
+      source: 'MANUAL',
+      now: NOW,
+    });
+
+    const run = await AgentRun.findOne({ kind: 'NEGOTIATION' }).lean();
+    expect(run, 'the material should have started a run').toBeTruthy();
+
+    const path = await runToCompletion(run!._id);
+    expect(path.at(-1)).toBe('FAILED');
+
+    // No impact row at all, rather than a plausible-looking one.
+    expect(await ImpactLog.countDocuments()).toBe(0);
+
+    // The clothes are not waste — they are still available to try again.
+    const item = await InventoryItem.findById(ingested.itemId).lean();
+    expect(item?.state).toBe('ACTIVE');
+
+    const match = await Match.findOne({}).lean();
+    expect(match?.outcome).toBe('FAILED');
+    expect(match?.recipientId ?? null).toBeNull();
   });
 });
 

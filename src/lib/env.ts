@@ -15,9 +15,10 @@ const serverSchema = z.object({
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
   MONGODB_DB: z.string().min(1).default('reloop'),
 
-  ANTHROPIC_API_KEY: z.string().default(''),
-  ANTHROPIC_MODEL: z.string().min(1).default('claude-sonnet-4-5'),
-  ANTHROPIC_VISION_MODEL: z.string().min(1).default('claude-sonnet-4-5'),
+  // Google Gemini. Empty is valid and means fixture mode, so the app runs with no key at all.
+  GEMINI_API_KEY: z.string().default(''),
+  GEMINI_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+  GEMINI_VISION_MODEL: z.string().min(1).default('gemini-2.5-flash'),
 
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
 

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { THRESHOLDS, isTerminal, type MatchState } from '@/lib/domain';
+import { THRESHOLDS, isTerminal, kindOf, type MatchState } from '@/lib/domain';
 import { env } from '@/lib/env';
 import { recordEvent } from '@/lib/agent-log';
 import { haversineKm } from '@/lib/geo';
@@ -666,23 +666,53 @@ async function stepComplete(ctx: StepContext): Promise<StepResult> {
   return { nextState: 'COMPLETED', delayMs: 0 };
 }
 
-/** COMPOST_DIVERTED → COMPLETED, via the nearest compost or biogas partner. */
+/** COMPOST_DIVERTED → COMPLETED, via the nearest compost or biogas partner that takes it. */
 async function stepDivertToCompost(ctx: StepContext): Promise<StepResult> {
-  const donor = await loadDonor(ctx.match.donorId);
-  if (!donor) return { nextState: 'FAILED' };
+  const [donor, items] = await Promise.all([
+    loadDonor(ctx.match.donorId),
+    loadItems(ctx.match.itemIds),
+  ]);
+  const primary = items[0];
+  if (!donor || !primary) return { nextState: 'FAILED' };
 
   const sinks = await loadNearbyRecipients(donor.coordinates, { maxKm: 25, onlyCompost: true });
-  const sink = sinks[0];
+
+  /*
+   * The sink has to actually accept the category. Composting is a food route: sending textiles or
+   * household goods to an organic waste plant is wrong operationally, and it would also let the
+   * Impact Agent be handed a diversion it has no cited factor for. Filtering on the sink's own
+   * declared categories keeps that impossible rather than merely discouraged.
+   */
+  const sink = sinks.find((candidate) => candidate.acceptedCategories.includes(primary.category));
 
   if (!sink) {
+    const isMaterial = kindOf(primary.category) === 'MATERIAL';
+    const pastDeadline = ctx.match.freshnessDeadlineAt.getTime() <= ctx.now.getTime();
+
     await ctx.log({
       agentId: 'negotiation',
       kind: 'diversion_failed',
-      summary: 'No compost or biogas partner in range either — this one is a genuine loss.',
+      summary: isMaterial
+        ? `No reuse partner in range takes ${primary.name.toLowerCase()} — composting is not a route for it, so it stays with you.`
+        : pastDeadline
+          ? 'No compost or biogas partner in range either — this one is a genuine loss.'
+          : `No diversion route for ${primary.name.toLowerCase()} right now — it stays in your pantry and will be tried again.`,
+      detail: { category: primary.category, isMaterial, pastDeadline },
       fallback: 'no_diversion_route',
     });
+
     await Match.updateOne({ _id: ctx.matchId }, { $set: { outcome: 'FAILED' } });
-    await InventoryItem.updateMany({ _id: { $in: ctx.match.itemIds } }, { $set: { state: 'WASTED' } });
+
+    /*
+     * Only call it waste when it genuinely is. Unmatched clothes are not wasted, and food that is
+     * still inside its window is not either — both go back to the pantry so they can be tried
+     * again rather than being written off to make a state machine tidy.
+     */
+    await InventoryItem.updateMany(
+      { _id: { $in: ctx.match.itemIds } },
+      { $set: { state: !isMaterial && pastDeadline ? 'WASTED' : 'ACTIVE' } }
+    );
+
     return { nextState: 'FAILED' };
   }
 

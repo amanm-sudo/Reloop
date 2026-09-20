@@ -31,7 +31,7 @@
 | Framework | Next.js 15 (App Router), TypeScript `strict` | One deploy target, one language, server actions + route handlers cover the backend. Avoids a second Express service. |
 | Styling | Tailwind CSS v4 + small local primitives | Fast, no component-library bloat, full control of the anti-cliché palette. |
 | Database | MongoDB Atlas + Mongoose | Agent events and extracted inventory are heterogeneous documents; schema flexibility matters more than joins here. Match/User relations are shallow enough not to need Postgres. |
-| LLM | Anthropic Claude (tool calling) via `@anthropic-ai/sdk`; vision for Perception | Native tool-use loop, strong structured output, one provider for all five agents. |
+| LLM | Google Gemini (function calling) via `@google/genai`; the same multimodal model serves Perception | Forced function calls give schema-conformant output, a generous free tier suits a hackathon, and one provider covers all five agents plus vision. |
 | Maps | MapLibre GL JS + OSM raster/vector tiles | Real live map, no API key to leak, zero billing risk. |
 | Routing | OSRM HTTP API → cached seed routes → haversine | Real road distances with two labelled fallbacks. |
 | Geocoding | Nominatim, **at seed time only**, results committed | Real coordinates, no runtime dependency, respects usage policy. |
@@ -91,7 +91,7 @@ API (approval latency risk inside a 14-day window); WebSockets (serverless frict
 │              │  simulated persona | or real via Telegram                    │
 │              └──────────────────────────────────┘                           │
 └────────────────────────────────────────────────────────────────────────────┘
-   External: Claude API · OSRM · OSM tiles · Telegram Bot API
+   External: Gemini API · OSRM · OSM tiles · Telegram Bot API
 ```
 
 ### 3.1 Why a step-wise orchestrator
@@ -198,7 +198,7 @@ Each turn is one `AgentEvent` → the replay view at `/runs/[id]` is free.
 
 Not a sixth product agent — the counterparty. Two implementations behind one interface:
 
-- `SimulatedPartnerAgent` — its own Claude context, own system prompt built from the seeded
+- `SimulatedPartnerAgent` — its own model context, own system prompt built from the seeded
   org profile (capacity remaining today, operating hours, categories, volunteer
   availability, a behavioural disposition such as *"eager but capacity-constrained after
   4 PM"*). Its tools are only `accept` / `counter_offer` / `decline`. It cannot see the
@@ -388,8 +388,8 @@ in-flight indicator is text plus spinner, not colour alone.
 
 | Dependency | Chain | UI label |
 | --- | --- | --- |
-| Vision (Perception) | Claude vision → fixture by image hash → manual entry | "demo fixture" / "entered manually" |
-| LLM (rationales, exchange) | Claude → fixture transcript → deterministic template | "demo fixture" |
+| Vision (Perception) | Gemini vision → fixture by image hash → manual entry | "demo fixture" / "entered manually" |
+| LLM (rationales, exchange) | Gemini → fixture transcript → deterministic template | "demo fixture" |
 | Routing | OSRM → cached seed route → haversine | "road distance" / "cached" / "straight-line" |
 | Tiles | OSM tiles → cached static tile bundle for Lucknow bbox | silent (visual only) |
 | Telegram | Webhook → in-app simulated partner | "simulated recipient" |
@@ -462,7 +462,7 @@ Vercel (Next.js full-stack) + MongoDB Atlas free tier. Vercel Cron hits `/api/cr
 every minute. Telegram webhook registered against the production URL. Local dev uses a
 long-poll script instead of a webhook so no tunnel is needed.
 
-Env vars: `MONGODB_URI`, `ANTHROPIC_API_KEY`, `SESSION_SECRET`, `TELEGRAM_BOT_TOKEN`,
+Env vars: `MONGODB_URI`, `GEMINI_API_KEY`, `SESSION_SECRET`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_WEBHOOK_SECRET`, `OSRM_BASE_URL`, `DEMO_MODE`, `ALLOW_REAL_OUTREACH`,
 `NEXT_PUBLIC_MAP_STYLE_URL`.
 
@@ -509,7 +509,8 @@ Recorded because a design doc that quietly disagrees with the code is worse than
 | Framework (§2) | Next.js 15 | Next.js 16 | Next 15 pulls a vulnerable postcss transitively; the only fix is the major bump, taken on day one while it was free. |
 | Lint (§2) | `eslint-config-next` | `@next/eslint-plugin-next` + `eslint-plugin-react-hooks` + `typescript-eslint` composed directly | `eslint-config-next` bundles an eslint-plugin-react build that calls the pre-ESLint-10 rule context API and crashes the whole run. |
 | Perception fixtures (§7) | JSON under `fixtures/` | Typed module at `src/agents/perception/fixtures.ts` | Type-checked against the extraction schema, so a fixture cannot drift out of shape silently. Resolution is still by image SHA-256, plus an explicit key for the demo path. |
-| Negotiation tools (§4.3) | Anthropic tool-calling loop | Registry-scoped capability functions the agent calls; a genuine tool-use loop only on the Partner Agent | Tool-calling earns its keep where the model genuinely chooses — the counterparty picking accept/counter/decline. Elsewhere the decisions are deterministic by design (§13.4), so a tool loop would have been ceremony. Scoping is still enforced in code via `assertMayUse`. |
+| Negotiation tools (§4.3) | Provider tool-calling loop | Registry-scoped capability functions the agent calls; a genuine tool-use loop only on the Partner Agent | Tool-calling earns its keep where the model genuinely chooses — the counterparty picking accept/counter/decline. Elsewhere the decisions are deterministic by design (§13.4), so a tool loop would have been ceremony. Scoping is still enforced in code via `assertMayUse`. |
 | E2E (§10) | Playwright smoke over the demo path | `npm run smoke`: boots a throwaway MongoDB and the production build, seeds, and drives the full run over HTTP | Catches what actually breaks a demo (server path, indexes, window fitting) in seconds with no browser download. **Layout and client behaviour at 390 px are not covered and still need a human pass.** |
-| Pickup windows (§4.5) | Up to three 30-minute windows | Same, but the window narrows and stops rounding to the half hour when under two hours remain | Found by the smoke test: a 1-hour runway minus travel slack minus half-hour rounding left no slot, sending genuinely rescuable urgent food to compost while a recipient sat open and willing. |
+| Pickup windows (§4.5) | Up to three 30-minute windows | The window narrows, stops rounding to the half hour, and may end early if that is when the recipient closes | Found twice by the smoke test. First a 1-hour runway minus travel slack minus half-hour rounding left no slot at all. Then a subtler version: `timingFit` counts a recipient eligible if it is open for *part* of the freshness window, but window generation demanded a full slot entirely inside opening hours — so a night kitchen open until 01:30 was ranked first and handed nothing. Both sent rescuable food to compost while somebody was there to take it. |
+| Model provider (§2) | Anthropic Claude via `@anthropic-ai/sdk` | Google Gemini via `@google/genai`, forced function calls for both structured output and the Partner Agent's choice | Requested mid-build. Worth recording what it cost: **only `src/lib/llm.ts` changed.** No agent, no prompt, no test, no orchestrator code — the payoff of having exactly one module own every model call. Gemini needs JSON Schema with `$ref` inlined and `$schema`/`additionalProperties` stripped, which `toGeminiSchema` handles and `tests/unit/llm-schema.test.ts` pins down. |
 | Operating hours (§5) | `{day, open, close}` per day | Same, plus windows that cross midnight | A night shelter kitchen is the recipient still reachable at 10 PM, which is exactly when households have cooked surplus. Without it the demo silently became a composting demo after 21:30. |

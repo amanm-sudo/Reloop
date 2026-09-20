@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { connectDb } from '@/lib/db';
+import { FOOD_CATEGORIES, MATERIAL_CATEGORIES } from '@/lib/domain';
 import { runSeed } from '@/scripts/seed';
 import { InventoryItem } from '@/models/inventory-item';
 import { RecipientProfile } from '@/models/recipient-profile';
@@ -86,6 +87,29 @@ describe('the demo seed', () => {
   it('includes a compost and a biogas route, so the loop closes when redistribution fails', async () => {
     const sinks = await RecipientProfile.find({ orgType: { $in: ['COMPOST', 'BIOGAS'] } }).lean();
     expect(sinks).toHaveLength(2);
+  });
+
+  it('gives every food category a diversion route', async () => {
+    /*
+     * Regression. The sinks originally listed only some food groups, so raw fish, eggs and poultry
+     * had no diversion route at all and would have been recorded as outright waste.
+     */
+    const sinks = await RecipientProfile.find({ orgType: { $in: ['COMPOST', 'BIOGAS'] } }).lean();
+
+    for (const category of FOOD_CATEGORIES) {
+      const covered = sinks.some((sink) => sink.acceptedCategories.includes(category));
+      expect(covered, `no compost or biogas route accepts ${category}`).toBe(true);
+    }
+  });
+
+  it('routes no material to an organic waste site', async () => {
+    // Composting textiles is wrong operationally and has no cited factor.
+    const sinks = await RecipientProfile.find({ orgType: { $in: ['COMPOST', 'BIOGAS'] } }).lean();
+
+    for (const category of MATERIAL_CATEGORIES) {
+      const wrongly = sinks.some((sink) => sink.acceptedCategories.includes(category));
+      expect(wrongly, `${category} must not be accepted by an organic waste site`).toBe(false);
+    }
   });
 
   it('covers late-evening cooked surplus, the hardest and most common real case', async () => {

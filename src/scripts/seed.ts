@@ -26,7 +26,7 @@ import { connectDb, disconnectDb } from '@/lib/db';
 import { everyDay, nextOpenAt } from '@/lib/hours';
 import { hashPassword } from '@/lib/auth';
 import { ingestItem } from '@/lib/ingest';
-import type { ItemCategory } from '@/lib/domain';
+import { FOOD_CATEGORIES, type ItemCategory } from '@/lib/domain';
 import { AgentEvent } from '@/models/agent-event';
 import { AgentRun } from '@/models/agent-run';
 import { ImpactLog } from '@/models/impact-log';
@@ -107,9 +107,21 @@ const FRESH: ItemCategory[] = [
   'produce_other_fruit',
   'produce_herbs',
 ];
-const DAIRY: ItemCategory[] = ['dairy_milk', 'dairy_curd', 'dairy_paneer'];
+const DAIRY: ItemCategory[] = ['dairy_milk', 'dairy_curd', 'dairy_paneer', 'dairy_butter_ghee'];
 const DRY: ItemCategory[] = ['grains_rice_raw', 'grains_wheat_flour', 'grains_bread', 'pulses_dry', 'packaged_dry_goods', 'oils_fats'];
+const PROTEIN: ItemCategory[] = ['protein_eggs', 'protein_poultry_raw', 'protein_fish_raw'];
 const MATERIALS: ItemCategory[] = ['material_textiles', 'material_paper_card', 'material_household_goods'];
+
+/**
+ * Every food category, taken straight from the canonical list rather than assembled from the
+ * groups above.
+ *
+ * Organic waste routes have to accept all food: a sink that takes only some of it leaves the rest
+ * with no diversion route at all, and the orchestrator then records that as outright waste. Built
+ * by construction so adding a category to `FOOD_CATEGORIES` cannot silently leave it unroutable —
+ * which is exactly how `dairy_butter_ghee` ended up belonging to no group at all.
+ */
+const ALL_FOOD: ItemCategory[] = [...FOOD_CATEGORIES];
 
 /**
  * Is anyone who takes cooked food actually open inside the lead item's action window?
@@ -199,7 +211,9 @@ async function seedRecipients(places: Map<string, Place>): Promise<void> {
       orgType: 'NGO',
       location: { type: 'Point', coordinates: [hazratganj.lng, hazratganj.lat] },
       coverageRadiusKm: 12,
-      acceptedCategories: [...COOKED, ...FRESH, ...DAIRY, ...DRY],
+      // Eggs are fine for a volunteer chapter; raw meat and fish are filtered out anyway by the
+      // cold-chain check in candidate scoring, so listing them costs nothing and reflects reality.
+      acceptedCategories: [...COOKED, ...FRESH, ...DAIRY, ...DRY, ...PROTEIN],
       coldChainCapable: false,
       dailyCapacityKg: 60,
       capacityUsedTodayKg: 0,
@@ -292,7 +306,7 @@ async function seedRecipients(places: Map<string, Place>): Promise<void> {
       orgType: 'COMPOST',
       location: { type: 'Point', coordinates: [mohanlalganj.lng, mohanlalganj.lat] },
       coverageRadiusKm: 30,
-      acceptedCategories: [...COOKED, ...FRESH, ...DAIRY, ...DRY],
+      acceptedCategories: ALL_FOOD,
       coldChainCapable: false,
       dailyCapacityKg: 2000,
       capacityUsedTodayKg: 0,
@@ -307,7 +321,7 @@ async function seedRecipients(places: Map<string, Place>): Promise<void> {
       orgType: 'BIOGAS',
       location: { type: 'Point', coordinates: [faizabadRoad.lng, faizabadRoad.lat] },
       coverageRadiusKm: 20,
-      acceptedCategories: [...COOKED, ...FRESH, ...DAIRY],
+      acceptedCategories: ALL_FOOD,
       coldChainCapable: false,
       dailyCapacityKg: 800,
       capacityUsedTodayKg: 0,
