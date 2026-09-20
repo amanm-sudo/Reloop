@@ -12,6 +12,29 @@ import { resetEnvCache } from '@/lib/env';
 
 let server: MongoMemoryServer | null = null;
 
+/**
+ * Refuses to let a destructive test touch anything but a local throwaway database.
+ *
+ * This is not theoretical. The seed test imports `@/scripts/seed`, which imports `load-env`, which
+ * reads the developer's real `.env.local` at module-evaluation time — before any `beforeAll` runs.
+ * `runSeed()` begins by deleting every collection it owns. The current import order happens to be
+ * safe, but "happens to be" is not a property worth betting a production database on, so the
+ * destructive paths assert their target instead of assuming it.
+ */
+export function assertLocalDatabase(): void {
+  const uri = process.env.MONGODB_URI ?? '';
+  const isLocal = /(?:127\.0\.0\.1|localhost|::1)/.test(uri);
+
+  if (!isLocal) {
+    // Redact any credentials before this reaches a log.
+    const safe = uri.replace(/\/\/[^@/]+@/, '//***@');
+    throw new Error(
+      `Refusing to run destructive test setup against a non-local database (${safe || 'unset'}). ` +
+        'Tests must only ever target the in-memory server started by startTestDb().'
+    );
+  }
+}
+
 export async function startTestDb(): Promise<void> {
   server = await MongoMemoryServer.create();
 
@@ -22,6 +45,8 @@ export async function startTestDb(): Promise<void> {
   process.env.ALLOW_REAL_OUTREACH = 'false';
   process.env.ANTHROPIC_API_KEY = '';
   resetEnvCache();
+
+  assertLocalDatabase();
 }
 
 export async function stopTestDb(): Promise<void> {
@@ -31,6 +56,8 @@ export async function stopTestDb(): Promise<void> {
 }
 
 export async function clearTestDb(): Promise<void> {
+  assertLocalDatabase();
+
   const collections = await mongoose.connection.db?.collections();
   for (const collection of collections ?? []) {
     await collection.deleteMany({});

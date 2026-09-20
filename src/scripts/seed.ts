@@ -14,6 +14,9 @@
  * Run: npm run seed
  */
 
+// Must come first: loads .env.local before anything reads configuration.
+import '@/scripts/load-env';
+
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

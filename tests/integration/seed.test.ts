@@ -1,10 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { connectDb } from '@/lib/db';
 import { runSeed } from '@/scripts/seed';
 import { InventoryItem } from '@/models/inventory-item';
 import { RecipientProfile } from '@/models/recipient-profile';
 import { User } from '@/models/user';
-import { clearTestDb, startTestDb, stopTestDb } from '../helpers/db';
+import { assertLocalDatabase, clearTestDb, startTestDb, stopTestDb } from '../helpers/db';
 
 /**
  * Runs the seed for real, against a real database.
@@ -22,6 +22,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await stopTestDb();
+});
+
+// runSeed() wipes collections, so re-check the target before every single call.
+beforeEach(() => {
+  assertLocalDatabase();
 });
 
 describe('the demo seed', () => {

@@ -9,6 +9,9 @@
  * Run: npm run geocode:seed
  */
 
+// Must come first: loads .env.local before anything reads configuration.
+import '@/scripts/load-env';
+
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 

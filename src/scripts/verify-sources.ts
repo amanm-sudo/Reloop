@@ -12,6 +12,9 @@
  * Printing the count on every run is what keeps the gap visible instead of permanent.
  */
 
+// Must come first: loads .env.local before anything reads configuration.
+import '@/scripts/load-env';
+
 import { ITEM_CATEGORIES, type ItemCategory } from '@/lib/domain';
 import { impactTable, shelfLifeTable } from '@/lib/reference-data';
 
