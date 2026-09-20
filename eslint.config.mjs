@@ -65,7 +65,8 @@ export default tseslint.config(
     rules: { 'no-restricted-imports': 'off' },
   },
   {
-    files: ['tests/**/*.ts', 'src/scripts/**/*.ts'],
+    // Scripts talk to a developer through stdout; that is their interface, not a stray debug line.
+    files: ['tests/**/*.ts', 'src/scripts/**/*.ts', 'scripts/**/*.mjs'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
       'no-console': 'off',
