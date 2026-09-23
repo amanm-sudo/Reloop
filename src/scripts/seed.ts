@@ -22,7 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Types } from 'mongoose';
 import { z } from 'zod';
-import { connectDb, disconnectDb } from '@/lib/db';
+import { connectDb, disconnectDb, ensureIndexes } from '@/lib/db';
 import { everyDay, nextOpenAt } from '@/lib/hours';
 import { hashPassword } from '@/lib/auth';
 import { ingestItem } from '@/lib/ingest';
@@ -478,6 +478,8 @@ export async function runSeed(now = new Date()): Promise<SeedSummary> {
   const places = loadPlaces();
 
   await connectDb();
+  // Before anything queries by proximity: a fresh database has no 2dsphere index yet.
+  await ensureIndexes();
   await wipe();
   await seedUsers(places);
   await seedRecipients(places);

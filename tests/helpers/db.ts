@@ -1,6 +1,6 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
-import { disconnectDb } from '@/lib/db';
+import { disconnectDb, ensureIndexes } from '@/lib/db';
 import { resetEnvCache } from '@/lib/env';
 
 /**
@@ -63,4 +63,7 @@ export async function clearTestDb(): Promise<void> {
   for (const collection of collections ?? []) {
     await collection.deleteMany({});
   }
+
+  // Recipient ranking runs on $near, which fails if the 2dsphere index has not finished building.
+  await ensureIndexes();
 }

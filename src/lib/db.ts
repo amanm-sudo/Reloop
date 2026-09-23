@@ -47,6 +47,43 @@ export async function connectDb(): Promise<typeof mongoose> {
   return cache.conn;
 }
 
+/**
+ * Waits for index builds to finish.
+ *
+ * Mongoose compiles models and then builds their indexes in the background, so on a database that
+ * has never had them a `$near` query can arrive first and fail outright with
+ * `unable to find index for $geoNear query`. Recipient ranking is entirely built on `$near`, so that
+ * race takes out the whole pipeline on a fresh deployment — and it surfaces as an opaque 500.
+ *
+ * Called once by the seed and by the test harness. Deliberately not called per request: it is a
+ * one-time setup concern, not a hot path.
+ */
+export async function ensureIndexes(): Promise<void> {
+  await connectDb();
+
+  // Imported lazily so this module stays free of model load-order concerns.
+  const [{ User }, { RecipientProfile }, { InventoryItem }, { Match }, { AgentRun }, { AgentEvent }, { ImpactLog }] =
+    await Promise.all([
+      import('@/models/user'),
+      import('@/models/recipient-profile'),
+      import('@/models/inventory-item'),
+      import('@/models/match'),
+      import('@/models/agent-run'),
+      import('@/models/agent-event'),
+      import('@/models/impact-log'),
+    ]);
+
+  await Promise.all([
+    User.init(),
+    RecipientProfile.init(),
+    InventoryItem.init(),
+    Match.init(),
+    AgentRun.init(),
+    AgentEvent.init(),
+    ImpactLog.init(),
+  ]);
+}
+
 export async function disconnectDb(): Promise<void> {
   if (cache.conn) {
     await cache.conn.disconnect();
